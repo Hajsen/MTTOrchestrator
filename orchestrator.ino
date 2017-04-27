@@ -8,7 +8,6 @@
 #include <util.h>
 
 #include <SPI.h>
-#include <utility/w5500.h>
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 IPAddress ip(192, 168, 1, 177);
@@ -43,16 +42,7 @@ void loop() {
   }
   while(!server.available() & client.connected());
   if(!client.connected()) return;
-  /*
-    uint8_t iplol; 
-    w5500.getIPAddress(&iplol);
-    Serial.print("Connection from: ");
-    for(int i = 0; i < 4; i++){
-      Serial.print(iplol); 
-      Serial.print(".");
-      iplol++;
-    }
-  */
+  
   nextbyte = client.read();
   Serial.println(nextbyte);
   client.write(nextbyte);
