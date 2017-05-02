@@ -22,7 +22,7 @@ void handlepayload(byte *payload, int payload_len){
   //execMTFunctionCall(function, strlen(function));
   //start test on module
   payload[payload_len + 1] = EOF;
-  sndCan(payload, 0x1, payload_len + 1);
+  sndCan(payload, payload_len + 1, 0x1);
   while(transmitting){
     while(!(len = rcvCan()));
     for(int i = 0; i < len; i++){
