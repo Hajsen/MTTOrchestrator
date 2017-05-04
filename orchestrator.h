@@ -48,9 +48,9 @@ bool execMTFunctionCall(char *functionCall, size_t len);
 #include <mcp_can_dfs.h>
 
 // CAN0 INT and CS
-#define CAN0_INT 2                              // Set INT to pin 2
+#define CAN0_INT 6                              // Set INT to pin 2
 
-MCP_CAN CAN0(11);                               // Set CS to pin 11
+MCP_CAN CAN0(2);                               // Set CS to pin 11
 
 // CAN RX Variables
 long unsigned int rxId;
