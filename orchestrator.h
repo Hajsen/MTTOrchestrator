@@ -1,6 +1,3 @@
-#ifndef ORCHESTRATOR_H_
-#define ORCHESTRATOR_H_
-
 #include <Dhcp.h>
 #include <Dns.h>
 #include <Ethernet2.h>
@@ -9,6 +6,10 @@
 #include <EthernetUdp2.h>
 #include <Twitter.h>
 #include <util.h>
+
+#ifndef ORCHESTRATOR_H_
+#define ORCHESTRATOR_H_
+
 
 #include <SPI.h>
 

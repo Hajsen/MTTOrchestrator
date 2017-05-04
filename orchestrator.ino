@@ -43,7 +43,8 @@ void handlepayload(byte *payload, int payload_len){
   }
   
   execMTFunctionCall("quit", sizeof("quit"));
-
+  bool resultCollecting = true;
+  
   while(resultCollecting){
     while(!(len = rcvCan()));
     for(int i = 0; i < len; i++){
@@ -221,7 +222,7 @@ void canInit(){
     Serial.println("Error Initializing MCP2515...");
   
   // Since we do not set NORMAL mode, we are in loopback mode by default.
-  //CAN0.setMode(MCP_NORMAL);
+  CAN0.setMode(MCP_NORMAL);
 
   pinMode(CAN0_INT, INPUT);                           // Configuring pin for /INT input
 }
