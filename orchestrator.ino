@@ -95,11 +95,11 @@ bool execMTFunctionCall(char *functionCall, size_t len){
 }
 void testDI(){
   //TESTDI START
-  #define DI_SW_ON 45
+  char di_sw_on = "\45";
   Serial.println("Press enter to continue to DI_SW_ON is HIGH");
   execMTFunctionCall("setDO", sizeof("setDO"));
-  clientMT.write(DI_SW_ON);
-  clientMT.write(HIGH);
+  clientMT.write(di_sw_on);
+  clientMT.write("\1");
   while(!clientMT.available());
   Serial.println("DI_SW_ON status: ");
   Serial.println(clientMT.read());
@@ -107,36 +107,72 @@ void testDI(){
   while(Serial.available() == 0){}
   Serial.read();
   execMTFunctionCall("setDO", sizeof("setDO"));
-  clientMT.write(DI_SW_ON);
-  clientMT.write(LOW);
+  clientMT.write(di_sw_on);
+  clientMT.write("\0");
   while(!clientMT.available());
   Serial.println("DI_SW_ON status: ");
-  Serial.println(clientMT.read());
+  Serial.print(clientMT.read());
   while(Serial.available() == 0){}
+  Serial.read();
   //TESTDI END
 }
 
 void testDO(){
-  #define DO_FB_1 
+  char do_fb_1 = "\8";
   for(int i = 0; i < 8; i++){
     Serial.println("Testing pin: ");
     Serial.print(i);
     execMTFunctionCall("readA", sizeof("readA"));
-    clientMT.write(DO_FB_1);
+    clientMT.write(do_fb_1);
     while(!clientMT.available());
     Serial.println("Result: ");
     Serial.print(clientMT.read());
     Serial.println("Press enter to go to next pin!");
     while(Serial.available() == 0){}
+    Serial.read();
   }  
+}
+
+void test20mAO(){
+  #define DIO33 33
+  #define DIO26 26
+  #define DIO32 32
+  #define DIO34 34
+  const char* DIO_array[4] = {"\32", "\26", "\33", "\34"};
+  for(int i = 0;i < 4; i++){
+    //open current output
+    execMTFunctionCall("setDO", sizeof("setDO"));
+    clientMT.write(DIO_array[i]);
+    clientMT.write("\1");
+    while(!clientMT.available());
+    Serial.println("Pin: ");
+    Serial.print(DIO_array[i]);
+    Serial.print(" status: ");
+    Serial.println(clientMT.read());
+    //close the current output
+    execMTFunctionCall("setDO", sizeof("setDO"));
+    clientMT.write(DIO_array[i]);
+    clientMT.write("\0");
+    Serial.println("Open next current output");
+    while(Serial.available() == 0){}
+    Serial.read();
+  }
 }
 
 void loop() {
   connectToMT();
   while(!Serial);
+  testDO();
+  while(Serial.available() == 0){}
+  Serial.read();
   testDI();
   while(Serial.available() == 0){}
   Serial.read();
+  test20mAO();
+  while(Serial.available() == 0){}
+  Serial.read();
+  clientMT.write("quit", sizeof("quit");
+  delay(1000);
 }
 
 void setup() {
