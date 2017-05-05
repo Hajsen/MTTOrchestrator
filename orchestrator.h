@@ -42,6 +42,7 @@ void handlepayload(byte *payload, int payload_len);
 bool connectToMT();
 void disconnectFromMT();
 bool execMTFunctionCall(char *functionCall, size_t len);
+void testDI();
 
 
 #include <mcp_can.h>

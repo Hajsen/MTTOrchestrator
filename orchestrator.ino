@@ -74,10 +74,6 @@ bool connectToMT(){
   return false;
 }
 
-void disconnectFromMT(){
-    
-}
-
 bool execMTFunctionCall(char *functionCall, size_t len){
     len -= 1;
     clientMT.write(len);
@@ -97,58 +93,34 @@ bool execMTFunctionCall(char *functionCall, size_t len){
     }
     return false;
 }
-
+void testDI(){
+  //TESTDI START
+  #define DI_SW_ON 45
+  Serial.println("Press enter to continue to DI_SW_ON is HIGH");
+  connectToMT();
+  execMTFunctionCall("setDO", sizeof("setDO"));
+  clientMT.write(DI_SW_ON);
+  clientMT.write(HIGH);
+  while(clientMT.available());
+  Serial.println("DI_SW_ON status: ");
+  Serial.println(clientMT.read());
+  Serial.println("Press enter to continue to DI_SW_ON is LOW");
+  while(Serial.available() == 0){}
+  Serial.read();
+  execMTFunctionCall("setDO", sizeof("setDO"));
+  clientMT.write(DI_SW_ON);
+  clientMT.write(LOW);
+  while(clientMT.available());
+  Serial.println("DI_SW_ON status: ");
+  Serial.println(clientMT.read());
+  while(Serial.available() == 0){}
+  //TESTDI END
+}
 void loop() {
   while(!Serial);
-  Serial.println("Waiting for answer");
-  EthernetClient clientAdmin;
-  /*
-  sndCan(msg, 18, 1);
-  while(!(len = rcvCan()));
-  */
-  
-  //waiting for someone to send
-  while(!clientAdmin.connected()){
-    clientAdmin = server.available();
-  }
-  while(!clientAdmin.available() & clientAdmin.connected());
-  if(!clientAdmin.connected()) return;
-  
-  nextbyte = clientAdmin.read();
-  Serial.println(nextbyte);
-  //clientAdmin.write(nextbyte);
-  
-  if(debug)
-    Serial.print("Nextbyte: ");
-    Serial.print(nextbyte);
-    Serial.println();
-    
-  if(sanitizepayload(nextbyte)){
-    rcvdpayload[rcvdpayloadlen] = nextbyte;    
-    rcvdpayloadlen += 1;
-  }
-  else if(nextbyte == 4){
-    Serial.print("END OF TRANSMISSION");
-    Serial.print("Payload length: ");
-    Serial.print(rcvdpayloadlen);
-    Serial.print(", PAYLOAD: ");
-    
-    for(int i = 0; i < rcvdpayloadlen; i++){
-      Serial.print(rcvdpayload[i]);
-    }
-    Serial.println();
-    handlepayload(rcvdpayload, rcvdpayloadlen);
-    rcvdpayloadlen = 0;
-  } else{
-    Serial.println("FAULTY PAYLOAD, DISCONNECTING...");
-    //negative transmission code sent, faulty input
-    clientAdmin.write(21);
-    while(clientAdmin.connected()){
-      clientAdmin.flush();
-      clientAdmin.stop();
-    }
-  }
-
+  testDI();
+  while(Serial.available() == 0){}
+  Serial.read();
 }
 
 void setup() {
