@@ -97,11 +97,10 @@ void testDI(){
   //TESTDI START
   #define DI_SW_ON 45
   Serial.println("Press enter to continue to DI_SW_ON is HIGH");
-  connectToMT();
   execMTFunctionCall("setDO", sizeof("setDO"));
   clientMT.write(DI_SW_ON);
   clientMT.write(HIGH);
-  while(clientMT.available());
+  while(!clientMT.available());
   Serial.println("DI_SW_ON status: ");
   Serial.println(clientMT.read());
   Serial.println("Press enter to continue to DI_SW_ON is LOW");
@@ -110,13 +109,30 @@ void testDI(){
   execMTFunctionCall("setDO", sizeof("setDO"));
   clientMT.write(DI_SW_ON);
   clientMT.write(LOW);
-  while(clientMT.available());
+  while(!clientMT.available());
   Serial.println("DI_SW_ON status: ");
   Serial.println(clientMT.read());
   while(Serial.available() == 0){}
   //TESTDI END
 }
+
+void testDO(){
+  #define DO_FB_1 
+  for(int i = 0; i < 8; i++){
+    Serial.println("Testing pin: ");
+    Serial.print(i);
+    execMTFunctionCall("readA", sizeof("readA"));
+    clientMT.write(DO_FB_1);
+    while(!clientMT.available());
+    Serial.println("Result: ");
+    Serial.print(clientMT.read());
+    Serial.println("Press enter to go to next pin!");
+    while(Serial.available() == 0){}
+  }  
+}
+
 void loop() {
+  connectToMT();
   while(!Serial);
   testDI();
   while(Serial.available() == 0){}

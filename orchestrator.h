@@ -43,7 +43,7 @@ bool connectToMT();
 void disconnectFromMT();
 bool execMTFunctionCall(char *functionCall, size_t len);
 void testDI();
-
+void testPWM();
 
 #include <mcp_can.h>
 #include <mcp_can_dfs.h>
