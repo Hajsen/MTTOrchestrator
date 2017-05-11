@@ -100,6 +100,20 @@ bool execMTFunctionCall(char *functionCall, size_t len){
 
 void loop() {
   while(!Serial);
+  delay(10000);
+  while(true){
+    sndCan(msg, 5, 1);
+    delay(10000);
+    
+    if(len = rcvCan()){
+      Serial.println("Rcvd CAN WOOHOO");
+      for(int i = 0; i < len; i++){
+        Serial.print((int)msgString[i]);
+      }
+      Serial.println();
+    }
+    delay(1000);
+  }
   Serial.println("Waiting for answer");
   EthernetClient clientAdmin;
   /*
@@ -169,13 +183,12 @@ void setup() {
 int rcvCan(){
   if(!digitalRead(CAN0_INT)){                          // If CAN0_INT pin is low, read receive buffer
     CAN0.readMsgBuf(&rxId, &len, rxBuf);              // Read data: len = data length, buf = data byte(s)
-    /*
+    
     if((rxId & 0x80000000) == 0x80000000)             // Determine if ID is standard (11 bits) or extended (29 bits)
       sprintf(msgString, "Extended ID: 0x%.8lX  DLC: %1d  Data:", (rxId & 0x1FFFFFFF), len);
     else
       sprintf(msgString, "Standard ID: 0x%.3lX       DLC: %1d  Data:", rxId, len);
     //Serial.print(len);
-    */
     
     if((rxId & 0x40000000) == 0x40000000){            // Determine if message is a remote request frame.
       sprintf(msgString, " REMOTE REQUEST FRAME");
