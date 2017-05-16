@@ -22,22 +22,49 @@ void handlepayload(byte *payload, int payload_len){
   //execMTFunctionCall(function, strlen(function));
   //start test on module
   payload[payload_len + 1] = EOF;
-  sndCan(payload, payload_len + 1, 0x1);
+  sndCan(msg, 7, 0x1);
+  uint8_t buffert[15];
+  int buf_pos = 0;
   while(transmitting){
     while(!(len = rcvCan()));
     for(int i = 0; i < len; i++){
       if(rxBuf[i] == EOT){
-        transmitting = false;
+        Serial.println("EOT");
         break;
       } else if(rxBuf[i] == WFA){
-        while(!clientMT.available()){};
-        sndCan(clientMT.read(), 1, 1);
+        Serial.println("WFA");
+        if(buf_pos) clientMT.write(&buffert[0], (size_t)(buf_pos));
+        int timeout_c = 0;
+        while(!clientMT.available()){
+          delay(10);
+          timeout_c++;
+          if(timeout_c > 20) break;
+        };
+        memset(buffert, 0, 30);
+        buf_pos = 0;
+        byte rcvdMT;
+        Serial.print("WFA okso: ");
+        while(clientMT.available()){
+          buffert[buf_pos++] = clientMT.read();
+        }
+        sndCan(buffert, ++buf_pos, 1);
+        memset(buffert, 0, 30);
+        buf_pos = 0;
+        Serial.println();
         break;
       } else if(rxBuf[i] == SOR){
+        Serial.println("SOR");
         transmitting = false;
         break;
-      } else{
-        clientMT.write(rxBuf[i]);  
+      } else if(rxBuf[i] < 200){
+        buffert[buf_pos++] = rxBuf[i];
+        if(sanitizepayload(rxBuf[i])){
+          Serial.print("MT(char): ");
+          Serial.println((char)rxBuf[i]);
+        } else{
+          Serial.print("MT: ");
+          Serial.println(rxBuf[i]);
+        }
       }
     }
   }
@@ -53,6 +80,12 @@ void handlepayload(byte *payload, int payload_len){
         break;
       }
       clientAdmin.write(rxBuf[i]);
+      if(sanitizepayload(rxBuf[i]) | (rxBuf[i] > 31 && rxBuf[i] < 200)){
+        Serial.print((char)rxBuf[i]);  
+      } else if(rxBuf[i] < 200){
+        Serial.print(rxBuf[i]);  
+      }
+      
     }
   }
   
@@ -66,8 +99,13 @@ bool connectToMT(){
   if (clientMT.connect(serverMT, 6340)) {
     clientMT.write(1);
     while(!clientMT.available()){}
-    if(clientMT.read()){
+    if(clientMT.read() == 1){
       Serial.println("connected to server");
+      Serial.print("clearing buffert: ");
+      while(clientMT.available()){
+        Serial.print(clientMT.read());
+      }
+      Serial.println();
       return true;
     }
   }
@@ -100,28 +138,29 @@ bool execMTFunctionCall(char *functionCall, size_t len){
 
 void loop() {
   while(!Serial);
-  delay(10000);
+  delay(3000);
+  /*
   while(true){
-    sndCan(msg, 5, 1);
     delay(10000);
-    
-    if(len = rcvCan()){
-      Serial.println("Rcvd CAN WOOHOO");
-      for(int i = 0; i < len; i++){
-        Serial.print((int)msgString[i]);
-      }
-      Serial.println();
+    while(!(len = rcvCan()));
+    Serial.println("Rcvd CAN WOOHOO");
+    for(int i = 0; i < len; i++){
+      Serial.print((int)msgString[i]);
     }
-    delay(1000);
+    Serial.println();
   }
+  */
   Serial.println("Waiting for answer");
   EthernetClient clientAdmin;
+  handlepayload(rcvdpayload, rcvdpayloadlen);
+  while(true){};
   /*
   sndCan(msg, 18, 1);
   while(!(len = rcvCan()));
   */
   
   //waiting for someone to send
+  /*
   while(!clientAdmin.connected()){
     clientAdmin = server.available();
   }
@@ -162,6 +201,7 @@ void loop() {
       clientAdmin.stop();
     }
   }
+  */
 
 }
 
@@ -196,6 +236,8 @@ int rcvCan(){
     } else {
       for(byte i = 0; i<len; i++){
         msgString[i] = rxBuf[i];
+        //Serial.print("RCV CAN: ");
+        //Serial.println(rxBuf[i]);
       }
     }    
     return len;
@@ -210,18 +252,19 @@ bool sndCan(byte *msg, int msg_len, int dest_id){
   for(i = 0;i < msg_len; i++){
     if(!(i%8) && i > 0){
       if(CAN0.sendMsgBuf(q, 8, canbuffer) == CAN_OK)        
-        Serial.println("CAN - Message Sent Successfully!");
+        //Serial.println("CAN - Message Sent Successfully!");
+        Serial.println(" - Sent Can");
       else
         Serial.println("Error Sending CAN - Message...");
-      
-      q++;
     }
     canbuffer[i%8] = msg[i];
+    Serial.print(msg[i]);
   }
   
   canbuffer[msg_len % 8] = EOT;
   if(CAN0.sendMsgBuf(q, (msg_len)%8 + 1, canbuffer) == CAN_OK)
-    Serial.println("CAN - Message Sent Successfully!");
+    Serial.println(" - Sent CAN");
+    //Serial.println("CAN - Message Sent Successfully!");
   else
     Serial.println("Error Sending CAN - Message...");
 }

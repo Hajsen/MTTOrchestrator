@@ -13,16 +13,22 @@
 
 #include <SPI.h>
 
-#define EOF 3 //end of function
-#define EOT 4 //end of transmission
-#define SOR 5 //start of result
-#define EOR 6 //end of result
-#define WFA 7 //wait for answer
+byte eof[1] = {255}; //end of function
+byte eot[1] = {254}; //end of transmission
+byte sor[1] = {253}; //start of result
+byte eor[1] = {252}; //end of result
+byte wfa[1] = {251}; //wait for answer
+
+#define EOF 255 //end of function
+#define EOT 254 //end of transmission
+#define SOR 253 //start of result
+#define EOR 252 //end of result
+#define WFA 251 //wait for answer
 
 bool debug = 1;
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-IPAddress ip(192, 168, 1, 177);
+IPAddress ip(10,160,238,20);
 IPAddress serverMT(10,160,238,15); 
 // Setup server with (port)
 EthernetServer server(80);
@@ -60,7 +66,7 @@ unsigned char rxBuf[8];
 // Serial Output String Buffer
 char msgString[128];
 size_t msgString_len;
-byte msg[] = {0x01, 0x06, 0x03, 0x04, 0x05};
+byte msg[] = {'t', 'e', 's', 't', 'D', 'I', 255};
 
 int rcvCan();
 bool sndCan(byte *msg, int msg_len, int dest_id);
