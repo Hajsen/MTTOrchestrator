@@ -19,10 +19,9 @@ void handlepayload(byte *payload, int payload_len){
     function += (char)payload[i];
   }
   */
-  //execMTFunctionCall(function, strlen(function));
-  //start test on module
-  payload[payload_len + 1] = EOF;
-  sndCan(msg, 7, 0x1);
+  
+  //start test on module  
+  sndCan(payload, payload_len, 0x1);
   uint8_t buffert[15];
   int buf_pos = 0;
   while(transmitting){
@@ -152,15 +151,12 @@ void loop() {
   */
   Serial.println("Waiting for answer");
   EthernetClient clientAdmin;
-  handlepayload(rcvdpayload, rcvdpayloadlen);
-  while(true){};
   /*
   sndCan(msg, 18, 1);
   while(!(len = rcvCan()));
   */
   
   //waiting for someone to send
-  /*
   while(!clientAdmin.connected()){
     clientAdmin = server.available();
   }
@@ -180,7 +176,7 @@ void loop() {
     rcvdpayload[rcvdpayloadlen] = nextbyte;    
     rcvdpayloadlen += 1;
   }
-  else if(nextbyte == 4){
+  else if(nextbyte == EOF){
     Serial.print("END OF TRANSMISSION");
     Serial.print("Payload length: ");
     Serial.print(rcvdpayloadlen);
@@ -190,6 +186,8 @@ void loop() {
       Serial.print(rcvdpayload[i]);
     }
     Serial.println();
+    rcvdpayload[rcvdpayloadlen] = nextbyte;    
+    rcvdpayloadlen += 1;
     handlepayload(rcvdpayload, rcvdpayloadlen);
     rcvdpayloadlen = 0;
   } else{
@@ -201,8 +199,6 @@ void loop() {
       clientAdmin.stop();
     }
   }
-  */
-
 }
 
 void setup() {
