@@ -77,9 +77,11 @@ void handlepayload(byte *payload, int payload_len){
         resultCollecting = false;
         break;
       }
-      clientAdmin.write(rxBuf[i]);
-      if(sanitizepayload(rxBuf[i]) | (rxBuf[i] > 31 && rxBuf[i] < 200)){
-        Serial.print((char)rxBuf[i]);  
+      
+      
+      if(sanitizepayload(rxBuf[i]) | ( rxBuf[i] > 31 && rxBuf[i] < 200 ) ){
+        Serial.print((char)rxBuf[i]);
+        clientAdmin.write(rxBuf[i]);
       } else{
         Serial.print(rxBuf[i]);  
       }
@@ -150,7 +152,6 @@ void loop() {
   }
   */
   Serial.println("Waiting for answer");
-  EthernetClient clientAdmin;
   /*
   sndCan(msg, 18, 1);
   while(!(len = rcvCan()));

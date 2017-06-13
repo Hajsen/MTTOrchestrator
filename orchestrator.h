@@ -67,7 +67,7 @@ unsigned char rxBuf[8];
 // Serial Output String Buffer
 char msgString[128];
 size_t msgString_len;
-byte msg[] = {'t', 'e', 's', 't', 'D', 'I', 255};
+//byte msg[] = {'t', 'e', 's', 't', 'D', 'I', 255};
 uint8_t buffert[30];
 
 int rcvCan();
