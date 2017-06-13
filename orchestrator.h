@@ -48,6 +48,7 @@ void handlepayload(byte *payload, int payload_len);
 bool connectToMT();
 void disconnectFromMT();
 bool execMTFunctionCall(char *functionCall, size_t len);
+bool resultCollecting;
 
 
 #include <mcp_can.h>
@@ -67,9 +68,11 @@ unsigned char rxBuf[8];
 char msgString[128];
 size_t msgString_len;
 byte msg[] = {'t', 'e', 's', 't', 'D', 'I', 255};
+uint8_t buffert[30];
 
 int rcvCan();
 bool sndCan(byte *msg, int msg_len, int dest_id);
 void canInit();
+void enableMTPower();
 
 #endif

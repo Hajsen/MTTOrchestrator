@@ -22,7 +22,7 @@ void handlepayload(byte *payload, int payload_len){
   
   //start test on module  
   sndCan(payload, payload_len, 0x1);
-  uint8_t buffert[15];
+
   int buf_pos = 0;
   while(transmitting){
     while(!(len = rcvCan()));
@@ -41,12 +41,11 @@ void handlepayload(byte *payload, int payload_len){
         };
         memset(buffert, 0, 30);
         buf_pos = 0;
-        byte rcvdMT;
         Serial.print("WFA okso: ");
         while(clientMT.available()){
           buffert[buf_pos++] = clientMT.read();
         }
-        sndCan(buffert, ++buf_pos, 1);
+        sndCan(buffert, buf_pos, 1);
         memset(buffert, 0, 30);
         buf_pos = 0;
         Serial.println();
@@ -68,9 +67,9 @@ void handlepayload(byte *payload, int payload_len){
     }
   }
   
-  execMTFunctionCall("quit", sizeof("quit"));
-  bool resultCollecting = true;
-  
+  resultCollecting = true;
+
+  Serial.println("Start Result Collecting");
   while(resultCollecting){
     while(!(len = rcvCan()));
     for(int i = 0; i < len; i++){
@@ -81,7 +80,7 @@ void handlepayload(byte *payload, int payload_len){
       clientAdmin.write(rxBuf[i]);
       if(sanitizepayload(rxBuf[i]) | (rxBuf[i] > 31 && rxBuf[i] < 200)){
         Serial.print((char)rxBuf[i]);  
-      } else if(rxBuf[i] < 200){
+      } else{
         Serial.print(rxBuf[i]);  
       }
       
@@ -127,6 +126,7 @@ bool execMTFunctionCall(char *functionCall, size_t len){
       Serial.println();
       
     clientMT.print(functionCall);
+    
     while(!clientMT.available()){}
     if(clientMT.read() == len){        
       Serial.println("Successfull functionCall");
@@ -137,7 +137,7 @@ bool execMTFunctionCall(char *functionCall, size_t len){
 
 void loop() {
   while(!Serial);
-  delay(3000);
+  delay(200);
   /*
   while(true){
     delay(10000);
@@ -194,10 +194,11 @@ void loop() {
     Serial.println("FAULTY PAYLOAD, DISCONNECTING...");
     //negative transmission code sent, faulty input
     clientAdmin.write(21);
+    /*
     while(clientAdmin.connected()){
       clientAdmin.flush();
       clientAdmin.stop();
-    }
+    }*/
   }
 }
 
@@ -212,6 +213,7 @@ void setup() {
   Serial.println(Ethernet.localIP());
 
   canInit();
+  enableMTPower();
 }
 
 //#################### CAN #################################################
@@ -246,21 +248,21 @@ bool sndCan(byte *msg, int msg_len, int dest_id){
   int i = 0;
   int q = dest_id;
   for(i = 0;i < msg_len; i++){
-    if(!(i%8) && i > 0){
+    Serial.println(msg[i]);
+    canbuffer[i%8] = msg[i];
+    if(!((i+1)%8) && i > 0){
       if(CAN0.sendMsgBuf(q, 8, canbuffer) == CAN_OK)        
-        //Serial.println("CAN - Message Sent Successfully!");
-        Serial.println(" - Sent Can");
+        Serial.println("CAN - Message Sent Successfully!");
       else
         Serial.println("Error Sending CAN - Message...");
+      
+      q++;
     }
-    canbuffer[i%8] = msg[i];
-    Serial.print(msg[i]);
   }
-  
-  canbuffer[msg_len % 8] = EOT;
+        
+  canbuffer[msg_len % 8] = eot[0];
   if(CAN0.sendMsgBuf(q, (msg_len)%8 + 1, canbuffer) == CAN_OK)
-    Serial.println(" - Sent CAN");
-    //Serial.println("CAN - Message Sent Successfully!");
+    Serial.println("CAN - Message Sent Successfully!");
   else
     Serial.println("Error Sending CAN - Message...");
 }
@@ -288,3 +290,24 @@ void canInit(){
     Serial.println("Payload:");
     Serial.println(payload);
   */  
+
+void enableMTPower(){
+  
+  connectToMT();
+  Serial.println("IO_DCU_ON is HIGH");
+  execMTFunctionCall("setDO", sizeof("setDO"));
+  delay(200);
+  clientMT.write((byte)0x15);
+  delay(200);
+  clientMT.write((byte)0x01);
+  while(!clientMT.available());
+  Serial.print("IO_DCU_ON state: ");
+  byte lol;
+  lol = clientMT.read();
+  while(lol != 255){
+    if(sanitizepayload(lol)){
+      Serial.println((char)lol);   
+    }
+    lol = clientMT.read();
+  }
+}
